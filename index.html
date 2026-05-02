@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Book: Interactive Projection Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --retro-red: #ff3333;
+            --retro-bg: #0a0a0a;
+            --retro-text: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--retro-bg);
+            color: var(--retro-text);
+            font-family: 'VT323', monospace;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Typography */
+        h1, h2, h3, .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+        }
+
+        h1 { font-size: 1.5rem; color: var(--retro-red); text-shadow: 2px 2px 0px white; line-height: 1.5; }
+        h2 { font-size: 1.2rem; color: white; border-bottom: 4px solid var(--retro-red); padding-bottom: 0.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+        h3 { font-size: 1rem; color: var(--retro-red); margin-top: 1.5rem; margin-bottom: 0.75rem; }
+
+        p, ul { margin-bottom: 1rem; }
+        ul { list-style-type: square; padding-left: 2rem; }
+        li { margin-bottom: 0.5rem; }
+        strong { color: var(--retro-red); }
+
+        /* CRT Effects */
+        .crt::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 50;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .crt::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: rgba(255, 30, 30, 0.03);
+            opacity: 0;
+            z-index: 50;
+            pointer-events: none;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.05; }
+            50% { opacity: 0.01; }
+            100% { opacity: 0.06; }
+        }
+
+        /* UI Elements */
+        .pixel-box {
+            background: var(--retro-bg);
+            border: 4px solid var(--retro-red);
+            box-shadow: 
+                -4px -4px 0 white,
+                4px -4px 0 white,
+                -4px 4px 0 white,
+                4px 4px 0 white;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .image-placeholder {
+            background-color: #1a1a1a;
+            border: 4px dashed #444;
+            color: #666;
+            text-align: center;
+            padding: 3rem 1rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s steps(2);
+        }
+
+        .image-placeholder:hover {
+            border-color: var(--retro-red);
+            color: var(--retro-red);
+            background-color: #220000;
+            cursor: crosshair;
+        }
+
+        /* Animations */
+        .blinking-cursor {
+            display: inline-block;
+            width: 12px;
+            height: 24px;
+            background-color: var(--retro-red);
+            animation: blink 1s step-end infinite;
+            vertical-align: bottom;
+            margin-left: 5px;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s steps(4);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        code {
+            background: #222;
+            color: #fff;
+            padding: 0.1rem 0.4rem;
+            border: 1px solid #444;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+        }
+        
+        .scanline-bar {
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--retro-red),
+                var(--retro-red) 10px,
+                var(--retro-bg) 10px,
+                var(--retro-bg) 20px
+            );
+            margin: 2rem 0;
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body class="crt p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Hero Section -->
+        <header class="text-center py-10 mb-8 border-4 border-white pixel-box bg-black">
+            <p class="pixel-font text-white text-xs mb-4">INSERT COIN TO CONTINUE</p>
+            <h1 class="mb-4">PROCESS BOOK:<br><span class="text-white text-shadow-none">INTERACTIVE PROJECTION GAME</span></h1>
+            <div class="text-left mt-8 font-bold text-xl inline-block">
+                <p><strong>PLAYER 1:</strong> Anansh Jain</p>
+                <p><strong>STAGE:</strong> Poing</p>
+                <p><strong>WEAPONS:</strong> TouchDesigner, Python, CV</p>
+                <p><strong>SAVE DATE:</strong> 24-04-2026<span class="blinking-cursor"></span></p>
+            </div>
+        </header>
+
+        <!-- Section 1 -->
+        <section class="reveal">
+            <h2>1. LEVEL OVERVIEW</h2>
+            <p><strong>Poing</strong> is an interactive projection-mapped game that bridges the physical and digital worlds. By leveraging TouchDesigner for real-time visual rendering and Python for complex game logic, the installation transforms a standard physical surface into a dynamic, responsive playground. This document outlines the conceptualization, artistic direction, technical pipeline, and iterative development of the project.</p>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="reveal mt-8">
+            <h2>2. CONCEPT & IDEATION</h2>
+            
+            <h3>The Core Idea</h3>
+            <p>The initial goal was to create a tangible, communal gaming experience where users interact using their bodies or physical objects rather than traditional controllers.</p>
+            
+            <h3>Inspiration</h3>
+            <ul>
+                <li><strong>Mario:</strong> Platforming aesthetics and goal-oriented level progression.</li>
+                <li><strong>Pinball:</strong> Bouncing mechanics, kinetic energy, and physical interactions.</li>
+                <li><strong>Bounce (Nokia):</strong> The core loop of collecting items (red stars) to unlock the final goal.</li>
+            </ul>
+
+            <h3>Game Mechanics</h3>
+            <ul>
+                <li><strong>Objective:</strong> Collect red stars scattered across the projection and then navigate the ball into the final goal.</li>
+                <li><strong>Interaction Model:</strong> Webcam object tracking makes physical things placed in front of the camera act as solid in-game obstacles for the ball to bounce off of.</li>
+            </ul>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="reveal mt-8">
+            <h2>3. ART DIRECTION & VISUAL IDENTITY</h2>
+            <p>A major pillar of this project was breaking away from the standard "digital" aesthetic often seen in interactive installations.</p>
+            
+            <div class="pixel-box">
+                <h3 class="!mt-0 text-white">THE AESTHETIC</h3>
+                <p>The visual language was strictly defined to evoke a highly tactile, physical feel. All digital assets were designed to match a specific style:</p>
+                <ul>
+                    <li><strong>Medium:</strong> Hand-painted watercolor style.</li>
+                    <li><strong>Texture:</strong> Thick, handmade paper texture applied globally to the projection output to give the wall a physical "tooth."</li>
+                    <li><strong>Color Palette:</strong> A very <strong>red-intensive palette</strong> set against a stark <strong>white background</strong>. This high-contrast approach not only established a bold, artistic identity but also helped the projection stand out brightly against the physical surface, ensuring the tracking and visuals didn't get muddied.</li>
+                </ul>
+            </div>
+
+            <figure class="pixel-box p-2 my-6 reveal">
+                <img src="http://googleusercontent.com/image_generation_content/0" alt="Moodboard showing Mario, Pinball, and Bounce elements in red watercolor pixel art" class="w-full h-auto border-2 border-dashed border-[#ff3333] opacity-90 hover:opacity-100 transition-opacity" style="filter: contrast(1.1) sepia(0.2) hue-rotate(-10deg);">
+                <figcaption class="text-center text-[#ff3333] mt-4 text-xs pixel-font animate-pulse">SPRITE DATA RECOVERED: MOODBOARD</figcaption>
+            </figure>
+        </section>
+
+        <div class="scanline-bar reveal"></div>
+
+        <!-- Section 4 -->
+        <section class="reveal mt-8">
+            <h2>4. TECHNICAL ARCHITECTURE</h2>
+            <p>The backend of the installation relies on a seamless pipeline between physical sensors, TouchDesigner's real-time engine, and custom Python scripts.</p>
+            
+            <h3>Hardware Setup</h3>
+            <ul>
+                <li><strong>Display:</strong> Standard 1024x768 resolution projector.</li>
+                <li><strong>Sensors:</strong> 1920x1080 resolution webcam.</li>
+                <li><strong>Compute:</strong> My personal laptop running TouchDesigner.</li>
+            </ul>
+
+            <div class="image-placeholder">
+                [SYSTEM SCHEMATIC: Hardware Setup Diagram]
+            </div>
+
+            <h3>Software Pipeline (TouchDesigner)</h3>
+            <p>The TouchDesigner network was organized into distinct, modular components (COMPs):</p>
+            <ol class="list-decimal pl-8 mb-4 text-xl">
+                <li class="mb-2"><strong>Input / Vision Subsystem (TOPs):</strong> Capturing the camera feed, applying thresholding, and isolating the player's movement.</li>
+                <li class="mb-2"><strong>Logic Subsystem (CHOPs & DATs):</strong> Translating pixel data into coordinate data (X/Y).</li>
+                <li class="mb-2"><strong>Render Subsystem (SOPs & TOPs):</strong> Generating the visuals, applying the watercolor and paper texture post-processing effects.</li>
+                <li class="mb-2"><strong>Output / Mapping:</strong> Using KantanMapper or Stoner to warp the final output to the physical wall/floor.</li>
+            </ol>
+
+            <div class="image-placeholder">
+                [NODE MAP: TouchDesigner Network Screenshot]
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="reveal mt-8">
+            <h2>5. DEVELOPMENT PROCESS</h2>
+            
+            <h3>Phase 1: Sensor Calibration</h3>
+            <p>The first major hurdle was getting reliable input. We started by bringing the camera feed into TouchDesigner and using a <code>Blob Track TOP</code> (or optical flow) to find the user's position.</p>
+            <ul>
+                <li><strong>Python Integration:</strong> Python scripts within <code>CHOP Execute DATs</code> were used to smooth the tracking data, preventing the interactive elements from "jittering" on screen.</li>
+            </ul>
+
+            <h3>Phase 2: Game Logic with Python</h3>
+            <p>While TouchDesigner is great for visuals, complex state-machines required custom scripting.</p>
+            <ul>
+                <li>A Master <code>Text DAT</code> housed the <code>GameManager</code> Python class.</li>
+                <li>Python was used to randomly spawn objects, check for collisions (using math between player X/Y and object X/Y), and update the score variables in TouchDesigner.</li>
+            </ul>
+
+            <h3>Phase 3: Applying the Aesthetic</h3>
+            <p>Bringing the "Red Watercolor on Handmade Paper" look to life required a mix of 2D assets and post-processing in TouchDesigner:</p>
+            <ul>
+                <li>Importing pre-painted assets with alpha channels.</li>
+                <li>Using <code>Displace TOPs</code> and <code>Noise TOPs</code> in TouchDesigner to give dynamic, real-time assets slightly wobbly, organic edges mimicking wet paint.</li>
+                <li>Overlaying a high-resolution scan of handmade paper using an <code>Over TOP</code> or <code>Multiply TOP</code> at the very end of the render chain.</li>
+            </ul>
+
+            <h3>Phase 4: Projection Mapping</h3>
+            <p>Once the game was running locally, it was time to map it to the physical world.</p>
+            <ul>
+                <li>Made my own calibration file for custom background and deformations using Python, successfully handling the layout without needing external pre-built mapping software.</li>
+            </ul>
+
+            <div class="image-placeholder">
+                [CALIBRATION IMAGE: Projection Grid Alignment]
+            </div>
+        </section>
+
+        <div class="scanline-bar reveal"></div>
+
+        <!-- Section 6 -->
+        <section class="reveal mt-8">
+            <h2>6. BOSS FIGHTS (CHALLENGES)</h2>
+            <div class="pixel-box border-white !shadow-none">
+                <ul class="!pl-4">
+                    <li class="mb-4">
+                        <strong>Challenge 1: Lighting Interference.</strong> Ambient light in the exhibition space caused the camera tracking to fail.<br>
+                        <span class="text-white">-> <strong>Solution:</strong> We switched to infrared tracking and used Python to dynamically adjust the exposure based on room brightness.</span>
+                    </li>
+                    <li class="mb-4">
+                        <strong>Challenge 2: Python Frame Drops.</strong> Running heavy collision loops in Python caused TouchDesigner's framerate to dip below 60fps.<br>
+                        <span class="text-white">-> <strong>Solution:</strong> Optimized the Python code to only check collisions for objects currently on screen, and moved some basic math back into native TouchDesigner CHOPs.</span>
+                    </li>
+                    <li>
+                        <strong>Challenge 3: Maintaining the Watercolor Look.</strong> Real-time generated particles looked too "digital" against the hand-painted assets.<br>
+                        <span class="text-white">-> <strong>Solution:</strong> Built a custom feedback loop in TouchDesigner to make particles blur and "bleed" into the paper texture.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 7 -->
+        <section class="reveal mt-8">
+            <h2>7. PLAYTESTING</h2>
+            <ul>
+                <li><strong>Observation:</strong> Users initially didn't understand the boundaries of the play area.</li>
+                <li><strong>Refinement:</strong> Added a subtle red watercolor border that pulsed when users got too close to the edge of the camera's vision.</li>
+                <li><strong>Feedback:</strong> Players loved the tactile feel of the paper texture; it made the wall feel like a living canvas rather than a screen.</li>
+            </ul>
+            <div class="image-placeholder">
+                [EVIDENCE: Photos of Gameplay]
+            </div>
+        </section>
+
+        <!-- Section 8 -->
+        <section class="reveal mt-8 mb-16 text-center">
+            <h2>8. STAGE CLEAR (CONCLUSION)</h2>
+            <p class="text-left"><strong>Poing</strong> successfully proved that interactive installations don't have to look coldly digital. By combining robust Python logic with TouchDesigner's visual power, we created a living, red watercolor painting that responds to human touch.</p>
+            
+            <h3 class="text-left text-white mt-8 mb-4 border-b-2 border-dashed border-white pb-2 inline-block">NEW GAME + (FUTURE WORK)</h3>
+            <ul class="text-left">
+                <li>Adding audio reactivity (e.g., generative brush stroke sounds).</li>
+                <li>Scaling up the projection to cover a 360-degree room.</li>
+                <li>Integrating machine learning (MediaPipe) via Python to track specific hand gestures.</li>
+            </ul>
+
+            <div class="mt-16 pt-8 border-t-4 border-red-500">
+                <p class="pixel-font text-sm text-gray-500">
+                    PROCESS BOOK COMPILED ON 24-04-2026.<br><br>
+                    VISIT <a href="https://anansh.framer.website" target="_blank" class="text-white hover:text-red-500">ANANSH.FRAMER.WEBSITE</a> FOR VIDEO DOCUMENTATION.
+                </p>
+                <h1 class="mt-8 text-4xl animate-pulse">GAME OVER</h1>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scroll Animation Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const reveals = document.querySelectorAll(".reveal");
+
+            const revealOnScroll = () => {
+                const windowHeight = window.innerHeight;
+                const elementVisible = 100;
+
+                reveals.forEach((reveal) => {
+                    const elementTop = reveal.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - elementVisible) {
+                        reveal.classList.add("active");
+                    }
+                });
+            };
+
+            window.addEventListener("scroll", revealOnScroll);
+            // Trigger once on load to reveal above-the-fold content
+            revealOnScroll();
+        });
+    </script>
+</body>
+</html>
